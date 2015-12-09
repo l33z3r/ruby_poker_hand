@@ -108,22 +108,30 @@ class Hand
 
   def initialize(cards)
     self.cards = cards
+    self.cards.sort! { |card1, card2| card1.rank.value <=> card2.rank.value }
   end
+
+  def print
+    self.cards.each do |card|
+      puts card
+    end
+  end
+
   def show
     if straight_flush = check_straight_flush
-      return 'Straight Flush', " To #{straight_flush.first.rank}"
+      return 'Straight Flush', "To #{straight_flush.first.rank}"
     elsif poker = check_poker
       return 'Poker', poker.first.rank
     elsif full_house = check_full_house
-      return 'Full House', "#{full_house[:trips].first.rank}'s and #{full_house[:first_pair].first.rank}'s'"
+      return 'Full House', "#{full_house[:trips].first.rank}'a And #{full_house[:first_pair].first.rank}'s'"
     elsif flush = check_flush
       return 'Flush', flush.first.suit
     elsif straight = check_straight
-      return 'Straight', " To #{straight.last.rank}"
+      return 'Straight', "To #{straight.last.rank}"
     elsif triples = check_triples
       return 'Triples', "#{triples.first.rank}'s"
     elsif two_pair = check_two_pair
-      return 'Two Pair', "#{two_pair[:first_pair].first.rank}'s' and #{two_pair[:second_pair].first.rank}'s'"
+      return 'Two Pair', "#{two_pair[:first_pair].first.rank}'s' And #{two_pair[:second_pair].first.rank}'s'"
     elsif pair = check_pair
       return 'Pair', "#{pair.first.rank}'s"
     else
@@ -204,11 +212,11 @@ class Hand
 
   def set_straight_hand
     self.cards = [
+        Card.new(Rank.new(Rank::THREE), Suit.new(Suit::HEARTS)),
         Card.new(Rank.new(Rank::FOUR), Suit.new(Suit::HEARTS)),
         Card.new(Rank.new(Rank::FIVE), Suit.new(Suit::CLUBS)),
         Card.new(Rank.new(Rank::SIX), Suit.new(Suit::DIAMONDS)),
         Card.new(Rank.new(Rank::SEVEN), Suit.new(Suit::HEARTS)),
-        Card.new(Rank.new(Rank::EIGHT), Suit.new(Suit::CLUBS))
     ]
   end
 
@@ -223,6 +231,8 @@ class Hand
   end
 
   def check_two_pair
+    self.cards.reverse!
+
     first_pair = card_count(2)
 
     if first_pair
@@ -235,6 +245,8 @@ class Hand
       second_pair = card_count(2)
 
       self.cards = temp_cards
+
+      self.cards.reverse!
 
       if second_pair
         return { first_pair: first_pair, second_pair: second_pair }
@@ -299,13 +311,11 @@ class Hand
   end
 
   def check_straight
-    cards = self.cards.sort { |card1, card2| card1.rank.value <=> card2.rank.value }
-
     # Ensure difference between each consecutive card is 1
-    previous_rank = cards.first.rank.value
+    previous_rank = self.cards.first.rank.value
 
-    cards.last(4).each do |card1|
-      return nil if (card1.rank.value - previous_rank > 1)
+    self.cards.last(4).each do |card1|
+      return nil if (card1.rank.value - previous_rank != 1)
       previous_rank = card1.rank.value
     end
   end
